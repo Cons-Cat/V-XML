@@ -3,7 +3,23 @@ module xml
 import os
 import strings.textscanner as sscan
 
+struct Prolog {
+mut:
+	prolog_keys   []string
+	prolog_values []string
+}
+
+fn (p Prolog) get_version() ?string {
+	for i, s in p.prolog_keys {
+		if s == 'version' {
+			return p.prolog_values[i]
+		}
+	}
+	return none
+}
+
 struct Data {
+	Prolog
 mut:
 	tree [][]string
 }
@@ -34,4 +50,43 @@ fn parse_xml(data string) Data {
 		println(char)
 	}
 	return xml_data
+}
+
+fn parse_open_tag(mut scanner sscan.TextScanner, mut xml_data Data) {
+	char := rune(scanner.next())
+	if char == `?` {
+		parse_prolog(mut scanner, mut xml_data)
+	}
+	if char == `>` {
+		return
+	}
+}
+
+fn parse_prolog(mut scanner sscan.TextScanner, mut xml_data Data) {
+	for {
+		char := rune(scanner.next())
+		if char == `?` {
+			break
+		}
+		if byte(char).is_letter() {
+			xml_data.prolog_keys << parse_word(scanner)
+			xml_data.prolog_values << parse_string(scanner)
+		}
+	}
+}
+
+fn parse_word(scanner &sscan.TextScanner) string {
+	mut str := ''
+	for {
+		char := rune(scanner.next())
+		if char == ` ` || char == `=` {
+			return str
+		} else {
+			str << char
+		}
+	}
+}
+
+fn parse_string(scanner &sscan.TextScanner) string {
+	return ''
 }
