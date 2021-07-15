@@ -40,14 +40,12 @@ fn parse_xml(data string) Data {
 			continue
 		}
 		if char == `<` {
-			println(`<`)
+			parse_open_tag(mut scanner, mut xml_data)
 			continue
 		}
 		if char == `>` {
-			println(`>`)
 			continue
 		}
-		println(char)
 	}
 	return xml_data
 }
@@ -58,35 +56,54 @@ fn parse_open_tag(mut scanner sscan.TextScanner, mut xml_data Data) {
 		parse_prolog(mut scanner, mut xml_data)
 	}
 	if char == `>` {
+		// Closing > symbol
 		return
 	}
 }
 
 fn parse_prolog(mut scanner sscan.TextScanner, mut xml_data Data) {
+	// Skip over name of prolog (usually 'xml')
+	for !byte(scanner.next()).is_space() {}
 	for {
 		char := rune(scanner.next())
 		if char == `?` {
+			// Closing ? symbol
 			break
 		}
 		if byte(char).is_letter() {
-			xml_data.prolog_keys << parse_word(scanner)
-			xml_data.prolog_values << parse_string(scanner)
+			// Read whole word
+			xml_data.prolog_keys << parse_word(mut scanner)
+			// Skip over opening "
+			scanner.next()
+			xml_data.prolog_values << parse_string(mut scanner)
 		}
 	}
 }
 
-fn parse_word(scanner &sscan.TextScanner) string {
+fn parse_word(mut scanner sscan.TextScanner) string {
 	mut str := ''
+	str += rune(scanner.current()).str()
 	for {
 		char := rune(scanner.next())
 		if char == ` ` || char == `=` {
+			// These delimit the end of a word
 			return str
 		} else {
-			str << char
+			str += char.str()
 		}
 	}
+	return str
 }
 
-fn parse_string(scanner &sscan.TextScanner) string {
-	return ''
+fn parse_string(mut scanner sscan.TextScanner) string {
+	mut str := ''
+	for {
+		char := rune(scanner.next())
+		if char == `"` {
+			// Closing " delimeter
+			return str
+		}
+		str += char.str()
+	}
+	return str
 }
