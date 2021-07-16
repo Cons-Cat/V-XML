@@ -1,7 +1,7 @@
 #+TITLE: V XML
 
-Currently, the V std lib lacks an XML parser. This is
-blocker auto-generated Vulkan bindings, which would
+Currently, the V std lib lacks an XML parser. This
+blocks auto-generated Vulkan bindings, which would
 be the start of the promised Vulkan library for V.
 
 This repo is for a naive implementation and tests
